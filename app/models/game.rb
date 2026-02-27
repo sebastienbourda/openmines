@@ -15,7 +15,6 @@ class Game < ApplicationRecord
   enum :mode, { solo: 0, multiplayer: 1 }
   enum :visibility, { private_game: 0, public_game: 1 }
 
-
   scope :for_user, ->(user) {
     left_joins(:player_games)
       .where(player_games: { user_id: user.id })
@@ -26,36 +25,44 @@ class Game < ApplicationRecord
   validates :width, :height, presence: true
   validates :mine_density, numericality: { greater_than: 0, less_than: 1 }
 
-  # Initialize sparse arrays for revealed/flagged cells
+  # Reconstituée depuis la table actions si le game est persisté
   def init_state
-    @revealed_cells ||= []
-    @flagged_cells  ||= []
+    @mine_cache = {}
+
+    if persisted?
+      rows = actions.pluck(:action_type, :x, :y)
+      # action_type: 0 = reveal, 1 = flag
+      @revealed_cells = Set.new(rows.filter_map { |t, x, y| [x, y] if t == 0 })
+      @flagged_cells  = Set.new(rows.filter_map { |t, x, y| [x, y] if t == 1 })
+    else
+      @revealed_cells = Set.new
+      @flagged_cells  = Set.new
+    end
   end
 
-  # Deterministic mine using SHA256
+  # Déterministe via SHA256, avec cache mémoire
   def mine_at?(x, y)
-    hex = Digest::SHA256.hexdigest("#{seed}-#{x}-#{y}")
-    num = hex[0..7].to_i(16)
-    num % 100 < (mine_density * 100)
+    @mine_cache[[x, y]] ||= begin
+      hex = Digest::SHA256.hexdigest("#{seed}-#{x}-#{y}")
+      hex[0..7].to_i(16) % 100 < (mine_density * 100)
+    end
   end
 
-  # Count adjacent mines for a cell
   def adjacent_mines(x, y)
     neighbors(x, y).count { |nx, ny| mine_at?(nx, ny) }
   end
 
-  # Flood-fill reveal starting from a cell
   def reveal_cells(x, y)
     return [] if @revealed_cells.include?([x, y])
 
     to_reveal = [[x, y]]
-    revealed = []
+    revealed  = []
 
     until to_reveal.empty?
       cx, cy = to_reveal.pop
       next if @revealed_cells.include?([cx, cy])
 
-      @revealed_cells << [cx, cy]
+      @revealed_cells.add([cx, cy])
       revealed << [cx, cy]
 
       if adjacent_mines(cx, cy).zero? && !mine_at?(cx, cy)
@@ -68,7 +75,6 @@ class Game < ApplicationRecord
     revealed
   end
 
-  # Return valid neighbors inside the board
   def neighbors(x, y)
     (-1..1).flat_map do |dx|
       (-1..1).map do |dy|

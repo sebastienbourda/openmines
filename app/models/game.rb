@@ -26,12 +26,12 @@ class Game < ApplicationRecord
   validates :mine_density, numericality: { greater_than: 0, less_than: 1 }
 
   # Reconstituée depuis la table actions si le game est persisté
+
   def init_state
     @mine_cache = {}
 
     if persisted?
       rows = actions.pluck(:action_type, :x, :y)
-      # action_type: 0 = reveal, 1 = flag
       @revealed_cells = Set.new(rows.filter_map { |t, x, y| [x, y] if t == 0 })
       @flagged_cells  = Set.new(rows.filter_map { |t, x, y| [x, y] if t == 1 })
     else

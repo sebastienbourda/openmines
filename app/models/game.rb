@@ -83,4 +83,26 @@ class Game < ApplicationRecord
       end
     end.compact
   end
+
+  # Retourne true si le coup touche une mine, et termine la partie
+  def hit_mine!(user)
+    return false unless mine_at_pending_reveal?
+    update!(status: :finished, result: :lost, ended_at: Time.current)
+    true
+  end
+
+  # Vérifie si toutes les cases sûres sont révélées → victoire
+  def check_victory!
+    safe_cells = (width * height) - total_mines
+    if @revealed_cells.size >= safe_cells
+      update!(status: :finished, result: :won, ended_at: Time.current)
+      true
+    else
+      false
+    end
+  end
+
+  def total_mines
+    @total_mines ||= (width * height * mine_density).floor
+  end
 end

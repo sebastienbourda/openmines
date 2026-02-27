@@ -42,36 +42,53 @@ class GamesController < ApplicationController
   # POST /games/:id/reveal
   def reveal
     x, y = params.values_at(:x, :y).map(&:to_i)
+
+    # 1. La cellule est une mine → game over immédiat
+    if @game.mine_at?(x, y)
+      @game.update!(status: :finished, result: :lost, ended_at: Time.current)
+      Action.create!(
+        user: Current.user, game: @game,
+        action_type: :reveal, x: x, y: y, result: :mine
+      )
+
+      # Broadcaster le game over à tous les joueurs
+      broadcast_game_over
+
+      respond_to do |format|
+        format.turbo_stream { render turbo_stream: turbo_stream.replace("game_status", partial: "games/game_over", locals: { game: @game }) }
+        format.json { render json: { status: :lost } }
+      end
+      return
+    end
+
+    # 2. Case safe → flood-fill
     revealed = @game.reveal_cells(x, y)
 
-    # Persister chaque cellule nouvellement révélée
     if revealed.any?
-      result_type = @game.mine_at?(x, y) ? :mine : :safe
-
-      actions_to_insert = revealed.map do |rx, ry|
-        {
-          user_id:     Current.user.id,
-          game_id:     @game.id,
+      Action.insert_all(revealed.map { |rx, ry|
+        { user_id: Current.user.id, game_id: @game.id,
           action_type: Action.action_types[:reveal],
-          x:           rx,
-          y:           ry,
-          result:      Action.results[result_type],
-          created_at:  Time.current,
-          updated_at:  Time.current
-        }
-      end
+          result: Action.results[:safe],
+          x: rx, y: ry,
+          created_at: Time.current, updated_at: Time.current }
+      })
 
-      # Insert en bulk — une seule requête SQL même pour 10 000 cellules
-      Action.insert_all(actions_to_insert)
+      # Broadcaster les cellules révélées à tous les autres joueurs
+      broadcast_revealed_cells(revealed)
+
+      # 3. Vérifier la victoire
+      if @game.check_victory!
+        broadcast_game_over
+      end
     end
 
     respond_to do |format|
       format.turbo_stream do
-        render turbo_stream: revealed.map do |rx, ry|
+        render turbo_stream: revealed.map { |rx, ry|
           turbo_stream.replace("cell_#{rx}_#{ry}") do
             render partial: "games/cell", locals: { game: @game, x: rx, y: ry }
           end
-        end
+        }
       end
       format.json { render json: { revealed: revealed } }
     end
@@ -79,6 +96,32 @@ class GamesController < ApplicationController
 
 
   private
+
+  def broadcast_revealed_cells(revealed)
+    turbo_streams = revealed.map do |rx, ry|
+      turbo_stream.replace("cell_#{rx}_#{ry}") do
+        render_to_string partial: "games/cell", locals: { game: @game, x: rx, y: ry }
+      end
+    end
+
+    # broadcast_to envoie à tous les abonnés du channel @game
+    # y compris le joueur courant — on le gérera côté vue avec un flag ou on accepte le double update (idempotent)
+    Turbo::StreamsChannel.broadcast_action_to(
+      @game,
+      action: :replace,
+      targets: revealed.map { |rx, ry| "cell_#{rx}_#{ry}" },
+      # ...
+    )
+  end
+
+  def broadcast_game_over
+    @game.broadcast_replace_to(
+      @game,
+      target: "game_status",
+      partial: "games/game_over",
+      locals: { game: @game }
+    )
+  end
 
 
   def set_game

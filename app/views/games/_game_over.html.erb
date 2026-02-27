@@ -1,0 +1,9 @@
+<!-- app/views/games/_game_over.html.erb -->
+<div id="game_status" class="...">
+  <% if game.won? %>
+    <p>🎉 Victoire !</p>
+  <% else %>
+    <p>💥 Game over — une mine a été touchée.</p>
+  <% end %>
+  <%= link_to "Nouvelle partie", new_game_path %>
+</div>

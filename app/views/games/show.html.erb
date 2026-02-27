@@ -14,3 +14,10 @@
     <% end %>
   <% end %>
 </div>
+
+
+<div id="game_status">
+  <% if @game.finished? %>
+    <%= render "games/game_over", game: @game %>
+  <% end %>
+</div>

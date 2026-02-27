@@ -1,23 +1,18 @@
-<!-- app/views/games/_cell.html.erb -->
-<%= turbo_frame_tag "cell_#{x}_#{y}" do %>
-  <% revealed = game.revealed_cells.include?([x,y]) %>
-  <% flagged  = game.flagged_cells.include?([x,y]) %>
-  <% count = revealed ? game.adjacent_mines(x,y) : 0 %>
+<% is_revealed = local_assigns.fetch(:revealed, game.revealed_cells.include?([x, y])) %>
+<% is_flagged  = local_assigns.fetch(:flagged,  game.flagged_cells.include?([x, y])) %>
+<% count = is_revealed ? game.adjacent_mines(x, y) : 0 %>
 
-  <div
-    class="cell w-5 h-5 border border-gray-600 flex items-center justify-center
-      <%= 'revealed bg-gray-300' if revealed %>
-      <%= 'flagged bg-yellow-200' if flagged %>"
-    data-x="<%= x %>"
-    data-y="<%= y %>"
-    data-action="click->game#reveal"
-  >
-    <% if revealed && count.positive? %>
-      <%= count %>
-    <% elsif flagged %>
-      🚩
-    <% else %>
-      <%# empty cell, nothing rendered inside %>
-    <% end %>
-  </div>
-<% end %>
+<div
+  class="cell w-5 h-5 border border-gray-600 flex items-center justify-center
+    <%= 'revealed bg-gray-300' if is_revealed %>
+    <%= 'flagged bg-yellow-200' if is_flagged %>"
+  data-x="<%= x %>"
+  data-y="<%= y %>"
+  data-action="click->game#reveal"
+>
+  <% if is_revealed && count.positive? %>
+    <%= count %>
+  <% elsif is_flagged %>
+    🚩
+  <% end %>
+</div>

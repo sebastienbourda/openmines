@@ -1,0 +1,8 @@
+<% if false && authenticated?  %>
+  <% @games.each do |game| %>
+    <p>
+      <%= link_to game.name, game_path(game) %>
+      (<%= game.mode.humanize %>, <%= game.visibility.humanize %>)
+    </p>
+  <% end %>
+<% end %>

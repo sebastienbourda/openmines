@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  width: 1
+  height: 1
+  mine_density: 9.99
+  seed: MyString
+  status: 1
+  started_at: 2026-02-20 18:36:31
+  ended_at: 2026-02-20 18:36:31
+
+two:
+  name: MyString
+  width: 1
+  height: 1
+  mine_density: 9.99
+  seed: MyString
+  status: 1
+  started_at: 2026-02-20 18:36:31
+  ended_at: 2026-02-20 18:36:31

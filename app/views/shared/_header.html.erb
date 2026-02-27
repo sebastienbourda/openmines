@@ -1,0 +1,29 @@
+<div class="text-2xl text-left fixed bg-white h-full p-5">
+  <h1 class="mb-2">
+    <%= link_to "OpenMines", root_path %>
+  </h1>
+
+  <% if authenticated? %>
+    <p>hello <span class="capitalize"><%= Current.session.user.first_name %></span></p>
+    <p><%= link_to "Log out", logout_path, data: { turbo_confirm: "Are you sure you want to sign out?" }, class: "" %></p>
+  <% else %>
+    <p><%= link_to "Log in", new_session_path %></p>
+    <p><%= link_to "Sign up", new_registration_path %></p>
+  <% end %>
+
+  <% if root_path %>
+    <div class="my-2">
+      <p><%= link_to "Start new game", new_game_path %></p>
+      <p><%= link_to "Resume games", root_path %></p>
+    </div>
+  <% end %>
+
+  <% if authenticated? && controller_name != "games" %>
+    <% @games.each do |game| %>
+      <p>
+        <%= link_to game.name, game_path(game) %>
+        (<%= game.mode.humanize %>, <%= game.visibility.humanize %>)
+      </p>
+    <% end %>
+  <% end %>
+</div>

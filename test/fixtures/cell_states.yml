@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  game: one
+  x: 1
+  'y': 1
+  revealed: false
+  flagged: false
+  revealed_by_player_id: 1
+  revealed_at: 2026-02-20 18:37:52
+
+two:
+  game: two
+  x: 1
+  'y': 1
+  revealed: false
+  flagged: false
+  revealed_by_player_id: 1
+  revealed_at: 2026-02-20 18:37:52

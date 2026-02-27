@@ -1,0 +1,35 @@
+<div class="text-2xl w-72 mt-4">
+  <% if alert = flash[:alert] %>
+    <p class="py-2 px-3 bg-red-50 mb-5 text-red-500 font-medium rounded-lg inline-block" id="alert"><%= alert %></p>
+  <% end %>
+
+  <% if notice = flash[:notice] %>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
+  <% end %>
+
+  <h1 class="font-bold text-4xl sr-only">Log in</h1>
+
+  <%= form_with url: session_url, class: "space-y-2" do |form| %>
+    <div>
+      <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address], class: "block w-fit min-w-[260px] focus:bg-lime-300 px-3 py-2 outline-none border" %>
+    </div>
+
+    <div>
+      <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72, class: "block w-72 focus:bg-lime-300 px-3 py-2 outline-none border" %>
+    </div>
+
+    <div class="mt-4">
+      <div class="inline">
+        <%= form.submit "Log in", class: "sm:w-auto text-center px-3.5 py-2.5 bg-gray-900 hover:bg-gray-950 text-white inline-block font-medium cursor-pointer" %>
+      </div>
+
+      <div class="mt-4 text-sm text-gray-500 sm:mt-0">
+      </div>
+
+      <div class="mt-4 text-sm text-gray-500 sm:mt-0">
+        <%= link_to "Forgot password?", new_password_path, class: "text-gray-700 underline hover:no-underline" %>
+        <p><%= link_to "No account yet? Register there", new_registration_path, class: "text-gray-700 underline hover:no-underline" %></p>
+      </div>
+    </div>
+  <% end %>
+</div>

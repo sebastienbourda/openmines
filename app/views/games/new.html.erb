@@ -1,0 +1,37 @@
+<h1>Start a new game</h1>
+
+<%= form_with model: @game, local: true do |f| %>
+  <div>
+    <%= f.label :name %>
+    <%= f.text_field :name, class: "block w-fit min-w-[260px] focus:bg-lime-300 px-3 py-2 outline-none border"  %>
+  </div>
+
+  <div>
+    <%= f.label :width %>
+    <%= f.number_field :width, class: "block w-fit min-w-[260px] focus:bg-lime-300 px-3 py-2 outline-none border"  %>
+  </div>
+
+  <div>
+    <%= f.label :height %>
+    <%= f.number_field :height, class: "block w-fit min-w-[260px] focus:bg-lime-300 px-3 py-2 outline-none border"  %>
+  </div>
+
+  <div>
+    <%= f.label :mine_density %>
+    <%= f.number_field :mine_density, step: 0.01, class: "block w-fit min-w-[260px] focus:bg-lime-300 px-3 py-2 outline-none border"  %>
+  </div>
+
+  <div>
+    <%= f.label :mode %>
+    <%= f.select :mode, Game.modes.keys.map { |m| [m.humanize, m] }, class: "block w-fit min-w-[260px] focus:bg-lime-300 px-3 py-2 outline-none border"  %>
+  </div>
+
+  <div>
+    <%= f.label :visibility %>
+    <%= f.select :visibility, Game.visibilities.keys.map { |v| [v.humanize, v] }, class: "block w-fit min-w-[260px] focus:bg-lime-300 px-3 py-2 outline-none border"  %>
+  </div>
+
+  <div>
+    <%= f.submit "Create Game" %>
+  </div>
+<% end %>

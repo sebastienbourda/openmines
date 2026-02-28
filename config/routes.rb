@@ -23,5 +23,6 @@ Rails.application.routes.draw do
   # Games
   resources :games do
     post :reveal, on: :member
+    post :flag,   on: :member
   end
 end

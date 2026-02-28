@@ -32,8 +32,8 @@ class Game < ApplicationRecord
 
     if persisted?
       rows = actions.pluck(:action_type, :x, :y)
-      @revealed_cells = Set.new(rows.filter_map { |t, x, y| [x, y] if t == 0 })
-      @flagged_cells  = Set.new(rows.filter_map { |t, x, y| [x, y] if t == 1 })
+      @revealed_cells = Set.new(rows.filter_map { |t, x, y| [x, y] if t == "reveal" })
+      @flagged_cells  = Set.new(rows.filter_map { |t, x, y| [x, y] if t == "flag" })
     else
       @revealed_cells = Set.new
       @flagged_cells  = Set.new

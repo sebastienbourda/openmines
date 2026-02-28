@@ -1,23 +1,23 @@
 <!-- app/views/games/show.html.erb -->
 <%= turbo_stream_from @game %>
 
-
-<div
-  data-controller="game"
-  data-game-id-value="<%= @game.id %>"
-  class="grid gap-1"
-  style="grid-template-columns: repeat(<%= @game.width %>, 1.25rem);"
->
-  <% @game.height.times do |y| %>
-    <% @game.width.times do |x| %>
-      <%= render "games/cell", game: @game, x: x, y: y %>
+<div class="relative inline-block">
+  <div
+    data-controller="game"
+    data-game-id-value="<%= @game.id %>"
+    class="grid gap-1"
+    style="grid-template-columns: repeat(<%= @game.width %>, 1.25rem);"
+  >
+    <% @game.height.times do |y| %>
+      <% @game.width.times do |x| %>
+        <%= render "games/cell", game: @game, x: x, y: y %>
+      <% end %>
     <% end %>
-  <% end %>
-</div>
+  </div>
 
-
-<div id="game_status">
-  <% if @game.finished? %>
-    <%= render "games/game_over", game: @game %>
-  <% end %>
+  <div id="game_status">
+    <% if @game.finished? %>
+      <%= render "games/game_over", game: @game %>
+    <% end %>
+  </div>
 </div>

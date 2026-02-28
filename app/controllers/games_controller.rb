@@ -42,6 +42,28 @@ class GamesController < ApplicationController
   # POST /games/:id/reveal
   def reveal
     x, y = params.values_at(:x, :y).map(&:to_i)
+
+    # Vérifier la mine AVANT le flood-fill
+    if @game.mine_at?(x, y)
+      @game.update!(status: :finished, result: :lost, ended_at: Time.current)
+
+      Action.create!(
+        user: Current.user, game: @game,
+        action_type: :reveal, result: :mine,
+        x: x, y: y
+      )
+
+      @game.broadcast_replace_to(
+        @game,
+        target: "game_status",
+        partial: "games/game_over",
+        locals: { game: @game }
+      )
+
+      return head :ok
+    end
+
+    # Case safe → flood-fill
     revealed = @game.reveal_cells(x, y)
 
     if revealed.any?
@@ -54,6 +76,7 @@ class GamesController < ApplicationController
       })
 
       broadcast_revealed_cells(revealed)
+      @game.check_victory!
     end
 
     head :ok

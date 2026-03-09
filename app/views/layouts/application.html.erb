@@ -1,31 +1,50 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Open Mines" %></title>
+    <title><%= content_for(:title) || "OpenMines" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
     <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
     <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-screen">
-    <%= render "shared/header" %>
-    <main class="h-full flex items-center justify-center">
+  <body>
+    <%# Auth pages get their own centered layout %>
+    <% if content_for?(:auth_layout) %>
       <%= yield %>
-    </main>
+    <% else %>
+      <div class="om-layout">
+        <%= render "shared/header" %>
+        <div class="om-main">
+          <div class="om-topbar">
+            <div class="om-topbar-path">
+              <span>open_mines</span>
+              <span class="sep">/</span>
+              <span class="current"><%= content_for(:topbar_path) || controller_name %></span>
+            </div>
+            <div style="font-size:11px; color:var(--fg-muted);">
+              <% if authenticated? %>
+                <span style="color:var(--fg-dim)"><%= Current.session.user.first_name %></span>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="om-content" style="padding: 0!important;">
+            <% flash.each do |type, msg| %>
+              <div class="om-flash <%= type %>">
+                <span style="color:var(--fg-muted)">// <%= type %></span> <%= msg %>
+              </div>
+            <% end %>
+
+            <%= yield %>
+          </div>
+        </div>
+      </div>
+    <% end %>
   </body>
 </html>

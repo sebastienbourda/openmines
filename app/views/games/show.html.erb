@@ -1,23 +1,114 @@
 <!-- app/views/games/show.html.erb -->
-<%= turbo_stream_from @game %>
 
-<div class="relative inline-block">
-  <div
-    data-controller="game"
-    data-game-id-value="<%= @game.id %>"
-    class="grid gap-1"
-    style="grid-template-columns: repeat(<%= @game.width %>, 1.25rem);"
-  >
-    <% @game.height.times do |y| %>
-      <% @game.width.times do |x| %>
-        <%= render "games/cell", game: @game, x: x, y: y %>
+<% if false %>
+<% content_for(:topbar_path, "games/#{@game.id}") %>
+
+<div class="om-comment">/** @game:<%= @game.id %> — <%= @game.name.presence || "untitled" %> **/</div>
+<h1 class="om-heading" style="margin-bottom:24px;">
+  board.<span class="accent">render(</span><%= @game.name.presence || "game_#{@game.id}" %><span class="accent">)</span>
+</h1>
+
+<div class="om-board-wrapper">
+
+  <%# ── BOARD ── %>
+  <div class="relative inline-block">
+    <div
+      data-controller="game"
+      data-game-id-value="<%= @game.id %>"
+      class="om-grid"
+      style="grid-template-columns: repeat(<%= @game.width %>, 22px);"
+    >
+      <% @game.height.times do |y| %>
+        <% @game.width.times do |x| %>
+          <%= render "games/cell", game: @game, x: x, y: y %>
+        <% end %>
       <% end %>
-    <% end %>
+    </div>
+
+    <div id="game_status">
+      <% if @game.finished? %>
+        <div class="om-status-banner <%= @game.won? ? 'won' : 'lost' %>" style="margin-top:12px;">
+          <% if @game.won? %>
+            <span>✓</span> result = <strong>"WON"</strong>
+          <% else %>
+            <span>✗</span> result = <strong>"LOST"</strong>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
   </div>
 
-  <div id="game_status">
-    <% if @game.finished? %>
-      <%= render "games/game_over", game: @game %>
-    <% end %>
+  <%# ── META ── %>
+  <div class="om-board-meta" style="min-width:160px;">
+    <div class="om-board-meta-header">// game.config</div>
+    <div class="om-board-meta-body">
+      <div class="om-stat-row">
+        <span class="om-stat-key">size</span>
+        <span class="om-stat-val"><%= @game.width %>×<%= @game.height %></span>
+      </div>
+      <div class="om-stat-row">
+        <span class="om-stat-key">density</span>
+        <span class="om-stat-val"><%= @game.mine_density %></span>
+      </div>
+      <div class="om-stat-row">
+        <span class="om-stat-key">status</span>
+        <span class="om-stat-val accent"><%= @game.status %></span>
+      </div>
+    </div>
   </div>
+
 </div>
+<% end %>
+
+<canvas id="test-grid" style="margin-top: 48px; border: 1px solid var(--border);"></canvas>
+
+<script>
+  (() => {
+    const COLS = 1000
+    const ROWS = 1000
+    const CELL = 22
+    const SEP  = 1
+    const TILE = CELL + SEP
+
+    const canvas = document.getElementById("test-grid")
+
+    // Canvas limité à la taille de la fenêtre
+    canvas.width  = Math.min(window.innerWidth  - canvas.offsetLeft, COLS * TILE)
+    canvas.height = Math.min(window.innerHeight - canvas.offsetTop,  ROWS * TILE)
+
+    const ctx = canvas.getContext("2d")
+
+    let offsetX = 0
+    let offsetY = 0
+
+    function draw() {
+      ctx.fillStyle = "#1e1e1c"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      ctx.fillStyle = "#111110"
+
+      const startCol = Math.floor(offsetX / TILE)
+      const startRow = Math.floor(offsetY / TILE)
+      const endCol   = Math.min(startCol + Math.ceil(canvas.width  / TILE) + 1, COLS)
+      const endRow   = Math.min(startRow + Math.ceil(canvas.height / TILE) + 1, ROWS)
+
+      for (let row = startRow; row < endRow; row++) {
+        for (let col = startCol; col < endCol; col++) {
+          const px = col * TILE - offsetX
+          const py = row * TILE - offsetY
+          ctx.fillRect(px, py, CELL, CELL)
+        }
+      }
+    }
+
+    // Scroll à la souris
+    canvas.addEventListener("wheel", (e) => {
+      e.preventDefault()
+      offsetX = Math.max(0, Math.min(offsetX + e.deltaX, COLS * TILE - canvas.width))
+      offsetY = Math.max(0, Math.min(offsetY + e.deltaY, ROWS * TILE - canvas.height))
+      draw()
+    }, { passive: false })
+
+    draw()
+  })()
+</script>
